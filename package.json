@@ -1,0 +1,2 @@
+{ "name": "larp-push", "version": "0.4.0", "private": true, "description": "LARP It Till You Make It: site + Web Push server (no dependencies)", "main": "server.js",
+  "scripts": { "start": "node server.js", "test": "node test.js" }, "engines": { "node": ">=18" } }

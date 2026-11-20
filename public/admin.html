@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>LARP admin</title>
+<style>
+:root{--bg:#0a0d0b;--panel:#121714;--p2:#181f1b;--line:#243029;--text:#eef4ef;--mute:#8fa196;--g:#2fd16b}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font:15px ui-sans-serif,-apple-system,Segoe UI,Roboto,sans-serif;padding:20px}
+.w{max-width:620px;margin:0 auto}h1{font-size:22px;margin-bottom:4px}.m{color:var(--mute);font-size:13px;margin-bottom:16px}
+.c{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.c h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mute);margin-bottom:12px}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 5px}
+input,select,textarea{width:100%;background:var(--p2);border:1px solid var(--line);color:var(--text);padding:10px 11px;border-radius:10px;font:inherit;outline:none}
+textarea{min-height:90px;resize:vertical;font-family:ui-monospace,Menlo,monospace;font-size:13px}
+.r{display:grid;grid-template-columns:1fr 1fr;gap:10px}.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+button{border:0;border-radius:10px;padding:11px 15px;font:700 14px inherit;cursor:pointer;background:var(--g);color:#04210f;margin-top:12px;margin-right:8px}
+button.s{background:var(--p2);color:var(--text);border:1px solid var(--line)}
+.st{font-size:13px;color:var(--mute);margin-top:10px;min-height:18px}.ok{color:#7dff9b}.er{color:#ff8a8a}
+.job{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:14px}.job button{margin:0;padding:6px 10px}
+</style></head><body><div class="w">
+<h1>LARP admin</h1><p class="m">Send real notifications to every phone that installed the app and tapped Enable.</p>
+<div class="c"><h2>Access</h2><label for="tok">Admin token</label><input id="tok" type="password" autocomplete="off" placeholder="your ADMIN_TOKEN">
+<button class="s" id="chk">Connect</button><div class="st" id="status"></div></div>
+<div class="c"><h2>Fake sales</h2>
+<div class="r"><div><label for="kind">Type</label><select id="kind"><option value="shopify">Shopify</option><option value="stripe">Stripe</option><option value="gumroad">Gumroad</option><option value="lemon">Lemon Squeezy</option><option value="appstore">App Store</option></select></div>
+<div><label for="cur">Currency</label><select id="cur"><option>$</option><option>৳</option><option>€</option><option>£</option><option>¥</option><option>₹</option><option>A$</option><option>C$</option></select></div></div>
+<label for="store">Store / business / app name</label><input id="store" value="Online Store" maxlength="40">
+<label for="prods">Products, one per line: name | price</label><textarea id="prods">Notion Template Pack | 49
+Logo Bundle | 29.5</textarea>
+<div class="r3"><div><label for="delay">Start after (sec)</label><input id="delay" type="number" min="0" value="0"></div>
+<div><label for="count">How many</label><input id="count" type="number" min="1" max="200" value="1"></div>
+<div><label for="int">Every (sec)</label><input id="int" type="number" min="1" value="5"></div></div>
+<label><input type="checkbox" id="qty" style="width:auto;margin-right:6px">Random quantity (1–3)</label>
+<button id="go">Send</button><div class="st" id="gs"></div></div>
+<div class="c"><h2>Custom message</h2><label for="t">Title</label><input id="t" maxlength="100" value="New order · $49.00"><label for="b">Body</label><input id="b" maxlength="300" value="Online Store · #1042 · 1 × Notion Template Pack">
+<button id="send">Send now</button><div class="st" id="ms"></div></div>
+<div class="c"><h2>Active runs</h2><div id="jobs" class="m">None</div></div>
+</div><script>
+const $=s=>document.querySelector(s);
+$('#tok').value=sessionStorage.getItem('t')||'';
+async function api(path,body){
+  const r=await fetch(path,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+$('#tok').value,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});
+  const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j;
+}
+function msg(el,t,ok){el.textContent=t;el.className='st '+(ok?'ok':'er')}
+async function refresh(){
+  try{const s=await api('/api/status');sessionStorage.setItem('t',$('#tok').value);msg($('#status'),'Connected · '+s.subscribers+' subscribed device'+(s.subscribers===1?'':'s'),true);
+    const box=$('#jobs');box.textContent='';if(!s.jobs.length){box.textContent='None';return}
+    s.jobs.forEach(j=>{const d=document.createElement('div');d.className='job';const sp=document.createElement('span');sp.textContent=j.kind+' · '+j.sent+'/'+j.count;const b=document.createElement('button');b.className='s';b.textContent='Cancel';b.onclick=async()=>{await api('/api/cancel',{id:j.id});refresh()};d.append(sp,b);box.append(d)});
+  }catch(e){msg($('#status'),e.message,false)}
+}
+$('#chk').onclick=refresh;if($('#tok').value)refresh();setInterval(()=>{if($('#tok').value)refresh()},5000);
+$('#go').onclick=async()=>{
+  const products=$('#prods').value.split('\n').map(l=>l.split('|')).filter(a=>a[0]&&a[0].trim()).map(a=>({name:a[0].trim(),price:parseFloat(a[1])||0}));
+  try{await api('/api/job',{kind:$('#kind').value,currency:$('#cur').value,store:$('#store').value,products,delaySec:+$('#delay').value,count:+$('#count').value,intervalSec:+$('#int').value,qtyRandom:$('#qty').checked});msg($('#gs'),'Scheduled ✓',true);refresh()}catch(e){msg($('#gs'),e.message,false)}
+};
+$('#send').onclick=async()=>{try{const r=await api('/api/send',{title:$('#t').value,body:$('#b').value});msg($('#ms'),'Sent to '+r.sent+' device(s)'+(r.failed?', '+r.failed+' failed':'')+(r.removed?', '+r.removed+' stale removed':''),true)}catch(e){msg($('#ms'),e.message,false)}};
+</script></body></html>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#0a0d0b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="LARP">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>LARP It Till You Make It — fake sale notifications</title>
+<meta name="description" content="Generate fake sale notifications for your product. Pick a type, set names and prices, hit play, and watch the cash flow in. A parody tool for pranks, screenshots and morale.">
+<meta property="og:title" content="LARP It Till You Make It">
+<meta property="og:description" content="Build a unicorn overnight. Fake sale notifications with your own product names and prices.">
+<style>
+:root{--bg:#0a0d0b;--panel:#121714;--panel2:#181f1b;--line:#243029;--text:#eef4ef;--mute:#8fa196;--green:#7dff9b;--green2:#2fd16b;--warn:#ffd166;--r:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;background:radial-gradient(900px 500px at 78% -10%,rgba(47,209,107,.18),transparent 60%),radial-gradient(700px 400px at -10% 30%,rgba(125,255,155,.07),transparent 60%),var(--bg)}
+.wrap{max-width:1120px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:30px}
+.logo{font-weight:800;letter-spacing:-.02em;font-size:18px;display:flex;align-items:center;gap:10px}
+.logo b{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:9px;background:linear-gradient(145deg,var(--green),var(--green2));color:#04210f;font-size:16px}
+.tag{font-size:12px;color:var(--mute);border:1px solid var(--line);padding:5px 10px;border-radius:99px}
+.hero{max-width:720px;margin-bottom:28px}
+h1{font-size:clamp(34px,6vw,60px);line-height:1.02;letter-spacing:-.04em;font-weight:850}
+h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),#e9ff8f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{margin-top:14px;color:var(--mute);font-size:17px;line-height:1.5;max-width:560px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:36px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}.stage{order:-1;position:static!important}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px}
+.card + .card{margin-top:16px}
+.card h3{font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--mute);margin-bottom:14px;font-weight:700}
+.types{display:flex;flex-wrap:wrap;gap:8px}
+.type{appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--text);padding:9px 13px;border-radius:12px;font:600 14px inherit;font-family:inherit;cursor:pointer;display:flex;align-items:center;gap:8px}
+.type.on{border-color:var(--green2);box-shadow:0 0 0 3px rgba(47,209,107,.15)}
+label.f{display:block;margin-bottom:14px}
+label.f>span,.lbl{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
+input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:11px 12px;border-radius:11px;font:500 15px inherit;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:var(--green2)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.prod{display:grid;grid-template-columns:1fr 110px 36px;gap:8px;margin-bottom:8px}
+.iconbtn{background:var(--panel2);border:1px solid var(--line);color:var(--mute);border-radius:11px;cursor:pointer;font-size:18px}
+.iconbtn:hover{color:#ff7b7b;border-color:#5a2a2a}
+.ghost{background:transparent;border:1px dashed var(--line);color:var(--green);padding:10px;border-radius:11px;width:100%;cursor:pointer;font:600 14px inherit;font-family:inherit}
+.ghost:hover{border-color:var(--green2)}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.toggle input{width:42px;height:24px;appearance:none;background:#2a352e;border-radius:99px;position:relative;cursor:pointer;transition:.2s;flex:none}
+.toggle input::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.toggle input:checked{background:var(--green2)}
+.toggle input:checked::after{left:21px}
+.hint{font-size:13px;color:var(--mute);line-height:1.5;margin-bottom:6px}
+.btns{display:flex;gap:8px;justify-content:center;width:100%}
+.btn{appearance:none;border:0;border-radius:12px;padding:11px 13px;font:700 13.5px inherit;font-family:inherit;cursor:pointer;color:#04210f;background:linear-gradient(145deg,var(--green),var(--green2));white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn.sec{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn.stop{background:#ff6b6b;color:#2a0505}
+
+/* ---------- stage + iPhone ---------- */
+.stage{position:sticky;top:20px;min-width:0}
+.phone-wrap{display:flex;flex-direction:column;align-items:center;gap:12px}
+.scaler{position:relative}
+.phone{position:absolute;left:0;top:0;width:372px;height:806px;transform-origin:0 0;border-radius:60px;padding:11px;
+  background:linear-gradient(145deg,#4a4d51,#1c1e20 35%,#2e3134 70%,#45484c);
+  box-shadow:inset 0 0 0 1.5px #6a6e73,inset 0 0 0 4px #121314,0 30px 80px rgba(0,0,0,.65)}
+.side{position:absolute;width:4px;background:linear-gradient(90deg,#2a2d30,#55595d);border-radius:2px}
+.side.a{left:-3px;top:118px;height:30px}.side.b{left:-3px;top:170px;height:56px}.side.c{left:-3px;top:236px;height:56px}.side.p{right:-3px;top:196px;height:92px;transform:scaleX(-1)}
+.screen{position:relative;width:100%;height:100%;border-radius:49px;overflow:hidden;color:#fff;background-size:cover}
+.wp-aurora{background:radial-gradient(120% 60% at 15% 0%,#2fd16b 0%,transparent 55%),radial-gradient(100% 60% at 100% 30%,#3b6bff 0%,transparent 55%),radial-gradient(90% 50% at 40% 100%,#7b3bff 0%,transparent 60%),linear-gradient(180deg,#0b1f17,#08111f)}
+.wp-sunset{background:radial-gradient(110% 60% at 80% 0%,#ff8a5b 0%,transparent 55%),radial-gradient(100% 70% at 0% 40%,#b84dff 0%,transparent 60%),linear-gradient(180deg,#2a1140,#120a1f)}
+.wp-night{background:radial-gradient(100% 50% at 50% 0%,#24305c 0%,transparent 60%),linear-gradient(180deg,#0c1020,#05060b)}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:120px;height:35px;background:#000;border-radius:99px;z-index:3}
+.sb{position:absolute;top:19px;left:0;right:0;display:flex;justify-content:space-between;padding:0 34px 0 38px;font-size:16px;font-weight:600;z-index:2}
+.sb .r{display:flex;gap:6px;align-items:center}
+.lock{position:absolute;top:66px;left:50%;transform:translateX(-50%);opacity:.9}
+.lsc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding:98px 12px 0}
+.date{font-size:18px;font-weight:600;opacity:.88}
+.clock{font-size:86px;font-weight:700;letter-spacing:-.025em;line-height:1;margin:0 0 14px;font-variant-numeric:tabular-nums;opacity:.96}
+.stack{width:100%;display:flex;flex-direction:column;gap:8px;overflow:hidden;flex:1;min-height:0;margin-bottom:112px;justify-content:flex-start}
+.notif{display:flex;gap:11px;align-items:center;background:rgba(60,60,67,.55);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);border-radius:24px;padding:12px 14px 12px 12px;flex:none;box-shadow:0 1px 0 rgba(255,255,255,.07) inset}
+.notif.in{animation:drop .6s cubic-bezier(.2,1.1,.3,1)}
+@keyframes drop{from{opacity:0;transform:translateY(-30px) scale(.93)}to{opacity:1;transform:none}}
+.nicon{width:40px;height:40px;border-radius:10px;flex:none;display:grid;place-items:center}
+.nbody{min-width:0;flex:1}
+.nhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ntitle{font-weight:600;font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.when{font-size:13px;opacity:.6;flex:none}
+.ntext{font-size:14px;opacity:.82;line-height:1.25;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.napp{font-size:11px;opacity:.5;letter-spacing:.03em;text-transform:uppercase;margin-bottom:2px}
+.round{position:absolute;bottom:42px;width:50px;height:50px;border-radius:50%;background:rgba(40,40,45,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:grid;place-items:center}
+.round.l{left:42px}.round.r{right:42px}
+.home{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);width:138px;height:5px;border-radius:99px;background:#fff;opacity:.9}
+.wm{position:absolute;bottom:20px;left:0;right:0;text-align:center;font-size:10.5px;opacity:.5;letter-spacing:.05em}
+.revenue{display:flex;align-items:baseline;justify-content:center;gap:10px}
+.revenue .n{font-size:22px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.revenue .l{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.08em}
+.phone.full{position:fixed;left:50%;top:50%;transform-origin:50% 50%;z-index:50}
+#fsBack{display:none;position:fixed;inset:0;background:#000;z-index:49}
+#fsBack.on{display:block}
+.exit{display:none;position:fixed;top:14px;right:14px;z-index:60;background:rgba(255,255,255,.14);color:#fff;border:0;border-radius:99px;padding:9px 14px;font:600 13px inherit;font-family:inherit;cursor:pointer}
+.exit.on{display:block}
+footer{margin-top:50px;color:var(--mute);font-size:12.5px;line-height:1.6;border-top:1px solid var(--line);padding-top:20px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><b>$</b> larpittillyoumakeit</div>
+    <span class="tag">v0.4 · parody tool</span>
+  </header>
+
+  <section class="hero">
+    <h1>LARP it <em>till you make it.</em></h1>
+    <p>Pick a notification type, set your product and price, and watch fake sales roll in. Great for pranks, screenshots, and Monday morale.</p>
+  </section>
+
+  <div class="grid">
+    <main>
+      <div class="card"><h3>1 · Notification type</h3><div class="types" id="types"></div></div>
+      <div class="card"><h3>2 · Customise</h3><div id="typeForm"></div></div>
+      <div class="card">
+        <h3>3 · Flow settings</h3>
+        <div class="row2">
+          <label class="f"><span>Notifications to generate</span><input type="number" id="count" min="1" max="6" value="5"></label>
+          <label class="f"><span>Seconds between sales</span><input type="number" id="interval" min="1" max="60" step="0.5" value="3"></label>
+        </div>
+        <div class="row2">
+          <label class="f"><span>Wallpaper</span>
+            <select id="wallpaper"><option value="aurora">Aurora</option><option value="sunset">Sunset</option><option value="night">Midnight</option></select>
+          </label>
+          <label class="f"><span>Sound</span>
+            <select id="sfx"><option value="register">Cash register</option><option value="ding">Clean ding</option><option value="off">Off</option></select>
+          </label>
+        </div>
+        <div class="toggle"><span>Show larpittillyoumakeit.com mark</span><input type="checkbox" id="watermark" checked></div>
+        <div class="toggle"><span>Randomise quantity (1–3 per order)</span><input type="checkbox" id="qty"></div>
+      </div>
+      <div class="card">
+        <h3>4 · Real phone notifications</h3>
+        <p class="hint" id="realStatus"></p>
+        <div class="toggle"><span>Also send each sale as a real notification</span><input type="checkbox" id="real"></div>
+        <div class="btns" style="justify-content:flex-start;margin-top:12px">
+          <button class="btn sec" id="enableReal">Enable notifications</button>
+          <button class="btn" id="sendNow">Send one now</button>
+        </div>
+      </div>
+    </main>
+
+    <aside class="stage">
+      <div class="phone-wrap">
+        <div class="scaler" id="scaler">
+          <div class="phone" id="phone">
+            <i class="side a"></i><i class="side b"></i><i class="side c"></i><i class="side p"></i>
+            <div class="screen wp-aurora" id="screen">
+              <div class="island"></div>
+              <div class="sb">
+                <span id="sbtime">9:41</span>
+                <span class="r">
+                  <svg width="18" height="12" viewBox="0 0 18 12" fill="#fff"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+                  <svg width="17" height="12" viewBox="0 0 17 12" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 4.2a10 10 0 0 1 14 0"/><path d="M4 7a6.4 6.4 0 0 1 9 0"/><circle cx="8.5" cy="10" r="1" fill="#fff" stroke="none"/></svg>
+                  <svg width="27" height="13" viewBox="0 0 27 13" fill="none"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#fff" opacity=".5"/><rect x="2" y="2" width="19" height="9" rx="2.3" fill="#fff"/><path d="M24.5 4.5v4c1-.3 1.7-1.1 1.7-2s-.7-1.7-1.7-2z" fill="#fff" opacity=".5"/></svg>
+                </span>
+              </div>
+              <svg class="lock" width="14" height="18" viewBox="0 0 14 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><rect x="1.5" y="8" width="11" height="8.5" rx="2.2" fill="#fff" stroke="none"/><path d="M4 8V5.5a3 3 0 0 1 6 0V8"/></svg>
+              <div class="lsc">
+                <div class="date" id="date"></div>
+                <div class="clock" id="clock"></div>
+                <div class="stack" id="stack"></div>
+              </div>
+              <div class="round l"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M8 2h8v4l-1.5 3v1H9.5V9L8 6V2zm2 9h4v11a2 2 0 0 1-4 0V11z"/></svg></div>
+              <div class="round r"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M3 8h4l1.6-2.5h6.8L17 8h4v11H3z"/><circle cx="12" cy="13.3" r="3.6"/></svg></div>
+              <div class="wm" id="wm">larpittillyoumakeit.com</div>
+              <div class="home"></div>
+            </div>
+          </div>
+        </div>
+        <div class="revenue"><span class="n" id="rev">$0.00</span><span class="l" id="orders">0 orders</span></div>
+        <div class="btns">
+          <button class="btn" id="play">▶ Start</button>
+          <button class="btn sec" id="fill">Fill stack</button>
+          <button class="btn sec" id="fs">Full screen</button>
+          <button class="btn sec" id="share">Copy link</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <footer>
+    Parody tool for fun. Not affiliated with, endorsed by, or connected to Shopify, Stripe, Gumroad, Lemon Squeezy, Apple or any other company named here. Names are used for parody only and the icons are original, not official logos.
+    Don't use it to deceive investors, customers, platforms or anyone who'd be harmed by believing the sales are real.
+  </footer>
+</div>
+<div id="fsBack"></div>
+<button class="exit" id="exit">Exit full screen</button>
+
+<script>
+/* ============================================================
+   Notification type registry. To add a type, add one entry:
+   defaults (editable settings), fields (builds the form),
+   make (one fake sale), render (what the card shows).
+   ============================================================ */
+const CURRENCIES = ['$', '৳', '€', '£', '¥', '₹', 'A$', 'C$'];
+const NAMES = ['Alex','Sam','Priya','Jordan','Mei','Lucas','Fatima','Noah','Aisha','Diego','Emma','Rahim','Sofia','Kenji','Zara','Tanvir','Olivia','Ravi','Nadia','Liam'];
+const svg = (inner, w = 22) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+const dollarS = '<svg width="28" height="28" viewBox="0 0 24 24"><text x="12" y="19.2" text-anchor="middle" font-family="-apple-system,Helvetica,Arial,sans-serif" font-size="23" font-weight="800" fill="#fff">$</text></svg>';
+const ICONS = {
+  shopify: { html: dollarS, bg: 'linear-gradient(160deg,#8bd34a,#3f8f2a)' },
+  stripe:  { html: dollarS, bg: 'linear-gradient(160deg,#8a7bff,#4b3fd6)' },
+  gumroad: { html: svg('<circle cx="12" cy="12" r="8"/><path d="M14.5 9.2c-.6-.8-1.5-1.2-2.5-1.2-1.5 0-2.5.8-2.5 2 0 3 5 1.4 5 4 0 1.2-1 2-2.5 2-1 0-2-.4-2.6-1.2M12 6.5V8m0 8v1.5"/>'), bg: 'linear-gradient(160deg,#ff90e8,#e5459f)' },
+  lemon:   { html: svg('<path d="M4 15c0-5 4-9 9-9 3 0 7 1 7 3 0 4-4 9-9 9-4 0-7-1-7-3z"/><path d="M13 9c-2 0-4 2-4 4"/>'), bg: 'linear-gradient(160deg,#ffd84a,#e8a300)' },
+  store:   { html: svg('<path d="M4 9l1.5-5h13L20 9"/><path d="M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9"/><path d="M5.5 12.5V20h13v-7.5"/>'), bg: 'linear-gradient(160deg,#4db2ff,#1c62e0)' }
+};
+const prodFields = (label) => ({ key: 'products', kind: 'products', label });
+const curField = { key: 'currency', kind: 'select', label: 'Currency', options: CURRENCIES };
+
+function sale(cfg, opts, extra) {
+  const p = cfg.products[Math.floor(Math.random() * cfg.products.length)] || { name: 'Mystery Item', price: 10 };
+  const qty = opts.qty ? 1 + Math.floor(Math.random() * 3) : 1;
+  return Object.assign({ name: p.name, qty, total: p.price * qty, currency: cfg.currency, customer: NAMES[Math.floor(Math.random() * NAMES.length)] }, extra);
+}
+
+const TYPES = {
+  shopify: {
+    label: 'Shopify', emoji: '🛍️',
+    defaults: { storeName: 'Online Store', currency: '$', products: [{ name: 'Notion Template Pack', price: 49 }, { name: 'Logo Bundle', price: 29.5 }], startOrder: 1001 },
+    fields: [
+      { key: 'storeName', kind: 'text', label: 'Sales channel / store name' }, curField,
+      prodFields('Products (name + price). Each order picks one at random.'),
+      { key: 'startOrder', kind: 'number', label: 'First order number' }
+    ],
+    make: (c, i, o) => sale(c, o, { n: Number(c.startOrder) + i, channel: c.storeName }),
+    render: o => ({ app: 'Shopify', title: 'New order · ' + money(o.total, o.currency), text: o.channel + ' · #' + o.n + ' · ' + o.qty + ' × ' + o.name, icon: ICONS.shopify })
+  },
+  stripe: {
+    label: 'Stripe', emoji: '💳',
+    defaults: { business: 'Acme Inc', currency: '$', products: [{ name: 'Pro plan (monthly)', price: 29 }, { name: 'Lifetime deal', price: 199 }] },
+    fields: [{ key: 'business', kind: 'text', label: 'Business name' }, curField, prodFields('Payment descriptions + amounts. Each payment picks one at random.')],
+    make: (c, i, o) => sale(c, o, { channel: c.business }),
+    render: o => ({ app: 'Stripe', title: 'Payment · ' + money(o.total, o.currency), text: o.customer + ' · ' + o.name + ' · ' + o.channel, icon: ICONS.stripe })
+  },
+  gumroad: {
+    label: 'Gumroad', emoji: '🌸',
+    defaults: { currency: '$', products: [{ name: 'The Indie Playbook (PDF)', price: 19 }, { name: 'Icon Pack Vol. 2', price: 12 }] },
+    fields: [curField, prodFields('Your products + prices. Each sale picks one at random.')],
+    make: (c, i, o) => sale(c, o, {}),
+    render: o => ({ app: 'Gumroad', title: 'New sale: ' + o.name, text: o.customer + ' paid ' + money(o.total, o.currency) + (o.qty > 1 ? ' (' + o.qty + ' ×)' : ''), icon: ICONS.gumroad })
+  },
+  lemon: {
+    label: 'Lemon Squeezy', emoji: '🍋',
+    defaults: { storeName: 'My Store', currency: '$', products: [{ name: 'SaaS Starter Kit', price: 149 }, { name: 'UI Components Pro', price: 79 }] },
+    fields: [{ key: 'storeName', kind: 'text', label: 'Store name' }, curField, prodFields('Products + prices. Each order picks one at random.')],
+    make: (c, i, o) => sale(c, o, { channel: c.storeName }),
+    render: o => ({ app: 'Lemon Squeezy', title: 'New order: ' + money(o.total, o.currency), text: o.name + ' · ' + o.customer + ' · ' + o.channel, icon: ICONS.lemon })
+  },
+  appstore: {
+    label: 'App Store', emoji: '📱',
+    defaults: { appName: 'My App', currency: '$', products: [{ name: 'Pro Upgrade (1 year)', price: 9.99 }, { name: 'Lifetime Unlock', price: 29.99 }] },
+    fields: [{ key: 'appName', kind: 'text', label: 'App name' }, curField, prodFields('In-app purchases + prices. Each sale picks one at random.')],
+    make: (c, i, o) => sale(c, o, { channel: c.appName }),
+    render: o => ({ app: 'App Store', title: 'Sale · ' + money(o.total, o.currency), text: o.channel + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : ''), icon: ICONS.store })
+  }
+};
+
+/* ---------- helpers + state ---------- */
+const $ = s => document.querySelector(s);
+const money = (n, cur) => cur + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const state = { type: 'shopify', cfg: { shopify: structuredClone(TYPES.shopify.defaults) }, count: 5, interval: 3, wallpaper: 'aurora', sfx: 'register', watermark: true, qty: false, real: false };
+
+function save() { try { history.replaceState(null, '', '#' + btoa(encodeURIComponent(JSON.stringify(state)))); } catch (e) {} }
+function load() {
+  try {
+    const raw = JSON.parse(decodeURIComponent(atob(location.hash.slice(1))));
+    if (!raw || !TYPES[raw.type]) return;
+    state.type = raw.type;
+    for (const k of ['count', 'interval']) if (isFinite(raw[k])) state[k] = Math.min(60, Math.max(1, +raw[k]));
+    if (['aurora', 'sunset', 'night'].includes(raw.wallpaper)) state.wallpaper = raw.wallpaper;
+    if (['register', 'ding', 'off'].includes(raw.sfx)) state.sfx = raw.sfx;
+    for (const k of ['watermark', 'qty', 'real']) if (typeof raw[k] === 'boolean') state[k] = raw[k];
+    state.cfg = {};
+    for (const id of Object.keys(TYPES)) {
+      const d = TYPES[id].defaults, c = raw.cfg && raw.cfg[id];
+      if (!c) { if (id === raw.type) state.cfg[id] = structuredClone(d); continue; }
+      const m = structuredClone(d);
+      for (const k of Object.keys(d)) if (c[k] !== undefined && typeof c[k] === typeof d[k]) m[k] = c[k];
+      if (CURRENCIES.indexOf(m.currency) < 0 && 'currency' in m) m.currency = d.currency;
+      if (Array.isArray(m.products)) {
+        m.products = m.products.slice(0, 8).filter(p => p && typeof p.name === 'string' && isFinite(p.price)).map(p => ({ name: p.name.slice(0, 60), price: Math.max(0, +p.price) }));
+        if (!m.products.length) m.products = d.products;
+      }
+      state.cfg[id] = m;
+    }
+  } catch (e) {}
+}
+
+/* ---------- UI ---------- */
+function drawTypes() {
+  const box = $('#types'); box.innerHTML = '';
+  Object.entries(TYPES).forEach(([id, t]) => {
+    const b = document.createElement('button');
+    b.className = 'type' + (state.type === id ? ' on' : '');
+    b.textContent = t.emoji + ' ' + t.label;
+    b.onclick = () => { state.type = id; if (!state.cfg[id]) state.cfg[id] = structuredClone(t.defaults); stop(); fill(); drawTypes(); drawForm(); save(); };
+    box.append(b);
+  });
+}
+function drawForm() {
+  const t = TYPES[state.type], cfg = state.cfg[state.type], root = $('#typeForm');
+  root.innerHTML = '';
+  t.fields.forEach(f => {
+    if (f.kind === 'products') return root.append(productsEditor(f, cfg));
+    const wrap = document.createElement('label'); wrap.className = 'f';
+    const sp = document.createElement('span'); sp.textContent = f.label; wrap.append(sp);
+    let el;
+    if (f.kind === 'select') {
+      el = document.createElement('select');
+      f.options.forEach(o => { const op = document.createElement('option'); op.value = o; op.textContent = o === '৳' ? '৳ (Bangladeshi taka)' : o; el.append(op); });
+    } else { el = document.createElement('input'); el.type = f.kind === 'number' ? 'number' : 'text'; if (f.kind === 'text') el.maxLength = 40; }
+    el.value = cfg[f.key];
+    el.oninput = () => { cfg[f.key] = f.kind === 'number' ? +el.value : el.value; if (f.key === 'currency') { stop(); fill(); } save(); };
+    wrap.append(el); root.append(wrap);
+  });
+}
+function productsEditor(f, cfg) {
+  const wrap = document.createElement('div'); wrap.style.marginBottom = '4px';
+  const l = document.createElement('div'); l.className = 'lbl'; l.textContent = f.label; wrap.append(l);
+  const list = document.createElement('div'); wrap.append(list);
+  const draw = () => {
+    list.innerHTML = '';
+    cfg.products.forEach((p, i) => {
+      const row = document.createElement('div'); row.className = 'prod';
+      const n = document.createElement('input'); n.type = 'text'; n.value = p.name; n.placeholder = 'Product name'; n.maxLength = 60; n.oninput = () => { p.name = n.value; save(); };
+      const pr = document.createElement('input'); pr.type = 'number'; pr.min = 0; pr.step = '0.01'; pr.value = p.price; pr.placeholder = 'Price'; pr.oninput = () => { p.price = Math.max(0, +pr.value || 0); save(); };
+      const x = document.createElement('button'); x.className = 'iconbtn'; x.textContent = '×'; x.title = 'Remove';
+      x.onclick = () => { if (cfg.products.length > 1) { cfg.products.splice(i, 1); draw(); save(); } };
+      row.append(n, pr, x); list.append(row);
+    });
+  };
+  draw();
+  const add = document.createElement('button'); add.className = 'ghost'; add.textContent = '+ Add product';
+  add.onclick = () => { if (cfg.products.length < 8) { cfg.products.push({ name: 'New Product', price: 19 }); draw(); save(); } };
+  wrap.append(add);
+  return wrap;
+}
+
+/* ---------- lock screen ---------- */
+function tick() {
+  const d = new Date();
+  $('#clock').textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: false });
+  $('#sbtime').textContent = d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: false });
+  $('#date').textContent = d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+  document.querySelectorAll('.notif').forEach(n => {
+    const s = Math.floor((Date.now() - n._t) / 1000);
+    n.querySelector('.when').textContent = s < 60 ? 'now' : Math.floor(s / 60) + 'm ago';
+  });
+}
+setInterval(tick, 15000);
+
+/* ---------- sound ---------- */
+let ac;
+function ctx() { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); if (ac.state === 'suspended') ac.resume(); return ac; }
+function bell(c, t, f, vol, dur) {
+  [[1, 1], [2.76, .45], [5.4, .22], [8.9, .1]].forEach(([r, g]) => {
+    const o = c.createOscillator(), a = c.createGain();
+    o.type = 'sine'; o.frequency.value = f * r;
+    a.gain.setValueAtTime(0.0001, t); a.gain.linearRampToValueAtTime(vol * g, t + 0.004); a.gain.exponentialRampToValueAtTime(0.0001, t + dur / (r > 1 ? r * .5 : 1));
+    o.connect(a); a.connect(c.destination); o.start(t); o.stop(t + dur + .05);
+  });
+}
+function playSfx(kind) {
+  kind = kind || state.sfx; if (kind === 'off') return;
+  try {
+    const c = ctx(), t = c.currentTime;
+    if (kind === 'ding') { [1318.5, 1760].forEach((f, i) => bell(c, t + i * .09, f, .14, .7)); return; }
+    // cash register: "ka" key clunk, drawer thunk, then double bell "ching"
+    const len = Math.floor(c.sampleRate * .07), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    const n = c.createBufferSource(), bp = c.createBiquadFilter(), ng = c.createGain();
+    bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = .9; ng.gain.value = .5;
+    n.buffer = buf; n.connect(bp); bp.connect(ng); ng.connect(c.destination); n.start(t);
+    const th = c.createOscillator(), tg = c.createGain();
+    th.type = 'triangle'; th.frequency.setValueAtTime(190, t + .05); th.frequency.exponentialRampToValueAtTime(70, t + .2);
+    tg.gain.setValueAtTime(.0001, t + .05); tg.gain.linearRampToValueAtTime(.35, t + .06); tg.gain.exponentialRampToValueAtTime(.0001, t + .22);
+    th.connect(tg); tg.connect(c.destination); th.start(t + .05); th.stop(t + .25);
+    bell(c, t + .13, 2350, .16, 1.3);
+    bell(c, t + .21, 3150, .12, 1.5);
+  } catch (e) {}
+}
+
+/* ---------- notifications ---------- */
+let orderCount = 0, revenue = 0, timer = null;
+function addNotif({ animate = true, ageSec = 0 } = {}) {
+  const t = TYPES[state.type], cfg = state.cfg[state.type];
+  const order = t.make(cfg, orderCount, { qty: state.qty }), v = t.render(order);
+  orderCount++; revenue += order.total;
+  const el = document.createElement('div'); el.className = 'notif' + (animate ? ' in' : ''); el._t = Date.now() - ageSec * 1000;
+  const ic = document.createElement('div'); ic.className = 'nicon'; ic.style.background = v.icon.bg; ic.innerHTML = v.icon.html;
+  const body = document.createElement('div'); body.className = 'nbody';
+  const app = document.createElement('div'); app.className = 'napp'; app.textContent = v.app;
+  const head = document.createElement('div'); head.className = 'nhead';
+  const title = document.createElement('div'); title.className = 'ntitle'; title.textContent = v.title;
+  const when = document.createElement('span'); when.className = 'when'; when.textContent = ageSec < 60 ? 'now' : Math.floor(ageSec / 60) + 'm ago';
+  head.append(title, when);
+  const text = document.createElement('div'); text.className = 'ntext'; text.textContent = v.text;
+  body.append(app, head, text); el.append(ic, body);
+  const stack = $('#stack'); stack.prepend(el);
+  while (stack.children.length > 6) stack.lastElementChild.remove();
+  $('#rev').textContent = money(revenue, cfg.currency);
+  $('#orders').textContent = orderCount + (orderCount === 1 ? ' order' : ' orders');
+  if (animate) { playSfx(); pushReal(v); }
+}
+function resetStack() { $('#stack').innerHTML = ''; orderCount = 0; revenue = 0; $('#rev').textContent = money(0, state.cfg[state.type].currency); $('#orders').textContent = '0 orders'; }
+function fill() {
+  stop(); resetStack();
+  const n = Math.min(6, Math.max(1, state.count));
+  for (let i = n - 1; i >= 0; i--) addNotif({ animate: false, ageSec: i * (40 + Math.random() * 120) });
+}
+function schedule() { timer = setTimeout(() => { addNotif(); schedule(); }, Math.max(1, state.interval) * 1000 * (0.6 + Math.random() * 0.8)); }
+function start() { resetStack(); $('#play').textContent = '■ Stop'; $('#play').classList.add('stop'); addNotif(); schedule(); }
+function stop() { clearTimeout(timer); timer = null; $('#play').textContent = '▶ Start'; $('#play').classList.remove('stop'); }
+
+/* ---------- phone sizing + fullscreen ---------- */
+const BW = 372, BH = 806; let full = false;
+function fit() {
+  const phone = $('#phone'), sc = $('#scaler');
+  if (full) { const s = Math.min(innerHeight * .96 / BH, innerWidth * .96 / BW); phone.style.transform = `translate(-50%,-50%) scale(${s})`; return; }
+  const avail = sc.parentElement.clientWidth || BW;
+  const s = Math.max(.42, Math.min(1, avail / BW, (innerHeight - 150) / BH));
+  sc.style.width = BW * s + 'px'; sc.style.height = BH * s + 'px'; phone.style.transform = `scale(${s})`;
+}
+function setFull(on) {
+  full = on;
+  $('#phone').classList.toggle('full', on); $('#fsBack').classList.toggle('on', on); $('#exit').classList.toggle('on', on);
+  if (on) { const r = document.documentElement.requestFullscreen; if (r) r.call(document.documentElement).catch(() => {}); }
+  else if (document.fullscreenElement) document.exitFullscreen();
+  fit();
+}
+addEventListener('resize', fit);
+document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && full) setFull(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && full) setFull(false); });
+$('#fs').onclick = () => setFull(true); $('#exit').onclick = () => setFull(false);
+
+/* ---------- wiring ---------- */
+$('#play').onclick = () => timer ? stop() : start();
+$('#fill').onclick = fill;
+$('#share').onclick = async () => {
+  save();
+  try { await navigator.clipboard.writeText(location.href); $('#share').textContent = 'Copied ✓'; } catch (e) { $('#share').textContent = 'Use address bar'; }
+  setTimeout(() => $('#share').textContent = 'Copy link', 1800);
+};
+function applyLook() { $('#screen').className = 'screen wp-' + state.wallpaper; $('#wm').style.display = state.watermark ? '' : 'none'; }
+$('#count').oninput = e => { state.count = Math.min(6, Math.max(1, +e.target.value || 1)); save(); };
+$('#interval').oninput = e => { state.interval = Math.min(60, Math.max(1, +e.target.value || 3)); save(); };
+$('#wallpaper').onchange = e => { state.wallpaper = e.target.value; applyLook(); save(); };
+$('#sfx').onchange = e => { state.sfx = e.target.value; playSfx(); save(); };
+$('#watermark').onchange = e => { state.watermark = e.target.checked; applyLook(); save(); };
+$('#qty').onchange = e => { state.qty = e.target.checked; save(); };
+
+/* ---------- real notifications (needs https + installed PWA on iPhone) ---------- */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+const canNotify = () => 'Notification' in window;
+function realStatus() {
+  const el = $('#realStatus');
+  if (!canNotify()) { el.textContent = 'Not available in this browser. On iPhone: open this site in Safari, tap Share, then Add to Home Screen, and open it from the new icon.'; return; }
+  const p = Notification.permission;
+  el.textContent = p === 'granted' ? 'Enabled. Sales can show up as real notifications while the app is open or recently used.' : p === 'denied' ? 'Blocked. Allow notifications for this app in your phone or browser settings.' : 'Tap "Enable notifications" and allow the prompt.';
+  $('#enableReal').style.display = p === 'granted' ? 'none' : '';
+  if (pushOK) el.textContent += ' Push server connected: you can also send notifications from /admin.';
+}
+
+let pushOK = false;
+async function subscribePush() {
+  try {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !canNotify() || Notification.permission !== 'granted') return false;
+    const r = await navigator.serviceWorker.ready;
+    const k = await (await fetch('/api/vapid')).json();
+    const key = Uint8Array.from(atob(k.publicKey.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+    let s = await r.pushManager.getSubscription();
+    if (s && s.options && s.options.applicationServerKey) {
+      const cur = new Uint8Array(s.options.applicationServerKey);
+      if (cur.length !== key.length || cur.some((v, i) => v !== key[i])) { await s.unsubscribe(); s = null; } // server keys changed: re-register
+    }
+    if (!s) s = await r.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: key });
+    const res = await fetch('/api/subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: s }) });
+    pushOK = res.ok; realStatus(); return pushOK;
+  } catch (e) { return false; }
+}
+async function pushReal(v) {
+  if (!state.real || !canNotify() || Notification.permission !== 'granted') return;
+  const o = { body: v.text, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'sale-' + Date.now() };
+  try {
+    const r = 'serviceWorker' in navigator ? await navigator.serviceWorker.getRegistration() : null;
+    if (r) await r.showNotification(v.title, o); else new Notification(v.title, o);
+  } catch (e) {}
+}
+$('#enableReal').onclick = async () => { if (canNotify()) { await Notification.requestPermission(); if (Notification.permission === 'granted') { state.real = true; $('#real').checked = true; save(); subscribePush(); } } realStatus(); };
+$('#real').onchange = e => { state.real = e.target.checked; if (state.real && canNotify() && Notification.permission === 'default') Notification.requestPermission().then(realStatus); save(); };
+$('#sendNow').onclick = () => { if (state.real === false && canNotify() && Notification.permission === 'granted') { state.real = true; $('#real').checked = true; } addNotif(); };
+
+load();
+if (state.real && !(canNotify() && Notification.permission === 'granted')) state.real = false;
+$('#count').value = state.count; $('#interval').value = state.interval; $('#wallpaper').value = state.wallpaper; $('#sfx').value = state.sfx; $('#watermark').checked = state.watermark; $('#qty').checked = state.qty; $('#real').checked = state.real;
+realStatus(); subscribePush(); applyLook(); drawTypes(); drawForm(); tick(); fit(); fill();
+</script>
+</body>
+</html>
