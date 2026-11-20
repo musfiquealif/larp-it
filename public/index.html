@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0a0d0b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="LARP">
+<meta name="apple-mobile-web-app-title" content="Sales">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" href="icon-192.png">
@@ -39,7 +39,7 @@ h1 em{font-style:normal;background:linear-gradient(90deg,var(--green),#e9ff8f);-
 .type.on{border-color:var(--green2);box-shadow:0 0 0 3px rgba(47,209,107,.15)}
 label.f{display:block;margin-bottom:14px}
 label.f>span,.lbl{display:block;font-size:13px;color:var(--mute);margin-bottom:6px}
-input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:11px 12px;border-radius:11px;font:500 15px inherit;font-family:inherit;outline:none}
+input[type=text],input[type=number],input[type=password],input[type=time],select{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:11px 12px;border-radius:11px;font:500 15px inherit;font-family:inherit;outline:none}
 input:focus,select:focus{border-color:var(--green2)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .prod{display:grid;grid-template-columns:1fr 110px 36px;gap:8px;margin-bottom:8px}
@@ -88,7 +88,11 @@ input:focus,select:focus{border-color:var(--green2)}
 .nhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .ntitle{font-weight:600;font-size:15px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .when{font-size:13px;opacity:.6;flex:none}
-.ntext{font-size:14px;opacity:.82;line-height:1.25;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ntext{font-size:14px;opacity:.82;line-height:1.25;margin-top:1px;overflow:hidden;white-space:pre-line;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sub{margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.sub h3{margin-bottom:12px}
+.jobrow{display:flex;justify-content:space-between;align-items:center;font-size:13.5px;padding:8px 0;border-top:1px solid var(--line)}
+.jobrow button{margin:0;padding:6px 10px}
 .napp{font-size:11px;opacity:.5;letter-spacing:.03em;text-transform:uppercase;margin-bottom:2px}
 .round{position:absolute;bottom:42px;width:50px;height:50px;border-radius:50%;background:rgba(40,40,45,.55);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:grid;place-items:center}
 .round.l{left:42px}.round.r{right:42px}
@@ -109,7 +113,7 @@ footer{margin-top:50px;color:var(--mute);font-size:12.5px;line-height:1.6;border
 <div class="wrap">
   <header>
     <div class="logo"><b>$</b> larpittillyoumakeit</div>
-    <span class="tag">v0.4 · parody tool</span>
+    <span class="tag">v0.5 · parody tool</span>
   </header>
 
   <section class="hero">
@@ -141,10 +145,26 @@ footer{margin-top:50px;color:var(--mute);font-size:12.5px;line-height:1.6;border
       <div class="card">
         <h3>4 · Real phone notifications</h3>
         <p class="hint" id="realStatus"></p>
-        <div class="toggle"><span>Also send each sale as a real notification</span><input type="checkbox" id="real"></div>
+        <div class="toggle"><span>Also send each sale as a real notification (while the app is open)</span><input type="checkbox" id="real"></div>
         <div class="btns" style="justify-content:flex-start;margin-top:12px">
           <button class="btn sec" id="enableReal">Enable notifications</button>
           <button class="btn" id="sendNow">Send one now</button>
+        </div>
+        <div class="sub">
+          <h3>Schedule from the server (works with the app closed)</h3>
+          <label class="f"><span>Admin token</span><input type="password" id="adminTok" autocomplete="off" placeholder="your ADMIN_TOKEN"></label>
+          <div class="row2">
+            <label class="f"><span>Start</span><select id="schedMode"><option value="in">After a delay</option><option value="at">At a clock time</option></select></label>
+            <label class="f" id="wrapIn"><span>Delay</span><div class="row2" style="gap:6px"><input type="number" id="schedAmount" min="0" step="any"><select id="schedUnit"><option value="s">seconds</option><option value="m">minutes</option><option value="h">hours</option></select></div></label>
+            <label class="f" id="wrapAt" style="display:none"><span>Time (your phone's clock)</span><input type="time" id="schedAt"></label>
+          </div>
+          <div class="row2">
+            <label class="f"><span>How many notifications</span><input type="number" id="schedCount" min="1" max="200"></label>
+            <label class="f"><span>One about every</span><div class="row2" style="gap:6px"><input type="number" id="schedEvery" min="1" step="any"><select id="schedEveryUnit"><option value="s">seconds</option><option value="m">minutes</option></select></div></label>
+          </div>
+          <div class="btns" style="justify-content:flex-start"><button class="btn" id="schedGo">Schedule</button></div>
+          <p class="hint" id="schedMsg" style="margin-top:10px"></p>
+          <div id="schedJobs"></div>
         </div>
       </div>
     </main>
@@ -232,53 +252,68 @@ const TYPES = {
       { key: 'startOrder', kind: 'number', label: 'First order number' }
     ],
     make: (c, i, o) => sale(c, o, { n: Number(c.startOrder) + i, channel: c.storeName }),
-    render: o => ({ app: 'Shopify', title: 'New order · ' + money(o.total, o.currency), text: o.channel + ' · #' + o.n + ' · ' + o.qty + ' × ' + o.name, icon: ICONS.shopify })
+    render: o => ({ app: 'Shopify', title: 'Order #' + o.n, text: money(o.total, o.currency) + ' · ' + o.qty + ' × ' + o.name + '\n' + o.channel, icon: ICONS.shopify })
   },
   stripe: {
     label: 'Stripe', emoji: '💳',
     defaults: { business: 'Acme Inc', currency: '$', products: [{ name: 'Pro plan (monthly)', price: 29 }, { name: 'Lifetime deal', price: 199 }] },
     fields: [{ key: 'business', kind: 'text', label: 'Business name' }, curField, prodFields('Payment descriptions + amounts. Each payment picks one at random.')],
     make: (c, i, o) => sale(c, o, { channel: c.business }),
-    render: o => ({ app: 'Stripe', title: 'Payment · ' + money(o.total, o.currency), text: o.customer + ' · ' + o.name + ' · ' + o.channel, icon: ICONS.stripe })
+    render: o => ({ app: 'Stripe', title: 'Payment from ' + o.customer, text: money(o.total, o.currency) + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : '') + '\n' + o.channel, icon: ICONS.stripe })
   },
   gumroad: {
     label: 'Gumroad', emoji: '🌸',
     defaults: { currency: '$', products: [{ name: 'The Indie Playbook (PDF)', price: 19 }, { name: 'Icon Pack Vol. 2', price: 12 }] },
     fields: [curField, prodFields('Your products + prices. Each sale picks one at random.')],
     make: (c, i, o) => sale(c, o, {}),
-    render: o => ({ app: 'Gumroad', title: 'New sale: ' + o.name, text: o.customer + ' paid ' + money(o.total, o.currency) + (o.qty > 1 ? ' (' + o.qty + ' ×)' : ''), icon: ICONS.gumroad })
+    render: o => ({ app: 'Gumroad', title: 'New sale', text: money(o.total, o.currency) + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : '') + '\n' + o.customer, icon: ICONS.gumroad })
   },
   lemon: {
     label: 'Lemon Squeezy', emoji: '🍋',
     defaults: { storeName: 'My Store', currency: '$', products: [{ name: 'SaaS Starter Kit', price: 149 }, { name: 'UI Components Pro', price: 79 }] },
     fields: [{ key: 'storeName', kind: 'text', label: 'Store name' }, curField, prodFields('Products + prices. Each order picks one at random.')],
     make: (c, i, o) => sale(c, o, { channel: c.storeName }),
-    render: o => ({ app: 'Lemon Squeezy', title: 'New order: ' + money(o.total, o.currency), text: o.name + ' · ' + o.customer + ' · ' + o.channel, icon: ICONS.lemon })
+    render: o => ({ app: 'Lemon Squeezy', title: 'New order', text: money(o.total, o.currency) + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : '') + '\n' + o.channel + ' · ' + o.customer, icon: ICONS.lemon })
   },
   appstore: {
     label: 'App Store', emoji: '📱',
     defaults: { appName: 'My App', currency: '$', products: [{ name: 'Pro Upgrade (1 year)', price: 9.99 }, { name: 'Lifetime Unlock', price: 29.99 }] },
     fields: [{ key: 'appName', kind: 'text', label: 'App name' }, curField, prodFields('In-app purchases + prices. Each sale picks one at random.')],
     make: (c, i, o) => sale(c, o, { channel: c.appName }),
-    render: o => ({ app: 'App Store', title: 'Sale · ' + money(o.total, o.currency), text: o.channel + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : ''), icon: ICONS.store })
+    render: o => ({ app: 'App Store', title: 'New purchase', text: money(o.total, o.currency) + ' · ' + o.name + (o.qty > 1 ? ' × ' + o.qty : '') + '\n' + o.channel, icon: ICONS.store })
   }
 };
 
 /* ---------- helpers + state ---------- */
 const $ = s => document.querySelector(s);
 const money = (n, cur) => cur + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-const state = { type: 'shopify', cfg: { shopify: structuredClone(TYPES.shopify.defaults) }, count: 5, interval: 3, wallpaper: 'aurora', sfx: 'register', watermark: true, qty: false, real: false };
+const state = { type: 'shopify', cfg: { shopify: structuredClone(TYPES.shopify.defaults) }, count: 5, interval: 3, wallpaper: 'aurora', sfx: 'register', watermark: true, qty: false, real: false, sched: { mode: 'in', amount: 1, unit: 'm', at: '', count: 5, every: 30, everyUnit: 's' } };
 
-function save() { try { history.replaceState(null, '', '#' + btoa(encodeURIComponent(JSON.stringify(state)))); } catch (e) {} }
+function save() {
+  const j = JSON.stringify(state);
+  try { localStorage.setItem('larp-state', j); } catch (e) {}
+  try { history.replaceState(null, '', '#' + btoa(encodeURIComponent(j))); } catch (e) {}
+}
+function readRaw() {
+  try { if (location.hash.length > 1) return JSON.parse(decodeURIComponent(atob(location.hash.slice(1)))); } catch (e) {}
+  try { return JSON.parse(localStorage.getItem('larp-state')); } catch (e) { return null; }
+}
 function load() {
   try {
-    const raw = JSON.parse(decodeURIComponent(atob(location.hash.slice(1))));
+    const raw = readRaw();
     if (!raw || !TYPES[raw.type]) return;
     state.type = raw.type;
     for (const k of ['count', 'interval']) if (isFinite(raw[k])) state[k] = Math.min(60, Math.max(1, +raw[k]));
     if (['aurora', 'sunset', 'night'].includes(raw.wallpaper)) state.wallpaper = raw.wallpaper;
     if (['register', 'ding', 'off'].includes(raw.sfx)) state.sfx = raw.sfx;
     for (const k of ['watermark', 'qty', 'real']) if (typeof raw[k] === 'boolean') state[k] = raw[k];
+    if (raw.sched && typeof raw.sched === 'object') {
+      const s = raw.sched, d = state.sched;
+      if (['in', 'at'].includes(s.mode)) d.mode = s.mode;
+      ['amount', 'count', 'every'].forEach(k => { if (isFinite(s[k]) && s[k] >= 0) d[k] = +s[k]; });
+      ['unit', 'everyUnit'].forEach(k => { if (['s', 'm', 'h'].includes(s[k])) d[k] = s[k]; });
+      if (typeof s.at === 'string' && /^\d\d:\d\d$/.test(s.at)) d.at = s.at;
+    }
     state.cfg = {};
     for (const id of Object.keys(TYPES)) {
       const d = TYPES[id].defaults, c = raw.cfg && raw.cfg[id];
@@ -499,10 +534,73 @@ $('#enableReal').onclick = async () => { if (canNotify()) { await Notification.r
 $('#real').onchange = e => { state.real = e.target.checked; if (state.real && canNotify() && Notification.permission === 'default') Notification.requestPermission().then(realStatus); save(); };
 $('#sendNow').onclick = () => { if (state.real === false && canNotify() && Notification.permission === 'granted') { state.real = true; $('#real').checked = true; } addNotif(); };
 
+
+/* ---------- schedule real notifications on the server ---------- */
+const UNIT = { s: 1, m: 60, h: 3600 };
+const tok = () => { try { return localStorage.getItem('larp-token') || ''; } catch (e) { return ''; } };
+function delaySec() {
+  const S = state.sched;
+  if (S.mode === 'at') {
+    if (!S.at) return 0;
+    const [hh, mm] = S.at.split(':').map(Number), d = new Date(); d.setHours(hh, mm, 0, 0);
+    if (d <= new Date()) d.setDate(d.getDate() + 1);
+    return Math.round((d - new Date()) / 1000);
+  }
+  return Math.round(S.amount * UNIT[S.unit]);
+}
+const fmtDur = s => { s = Math.round(s); return s < 60 ? s + 's' : s < 3600 ? Math.round(s / 60) + ' min' : (s / 3600).toFixed(1) + ' h'; };
+async function srv(path, body) {
+  const r = await fetch(path, { method: body ? 'POST' : 'GET', headers: { Authorization: 'Bearer ' + tok(), 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(r.status === 401 ? 'Wrong or missing admin token.' : (j.error || 'Server error ' + r.status));
+  return j;
+}
+function schedMsg(t, ok) { const el = $('#schedMsg'); el.textContent = t; el.style.color = ok ? '#7dff9b' : '#ff8a8a'; }
+async function scheduleServer() {
+  const cfg = state.cfg[state.type], S = state.sched;
+  if (!tok()) return schedMsg('Enter your admin token first.', false);
+  const delay = delaySec(), every = Math.max(1, S.every * UNIT[S.everyUnit]), count = Math.min(200, Math.max(1, Math.floor(S.count)));
+  if (delay > 86400) return schedMsg('The delay can be 24 hours at most.', false);
+  try {
+    await srv('/api/job', { kind: state.type, currency: cfg.currency, store: cfg.storeName || cfg.business || cfg.appName || 'Online Store', products: cfg.products, qtyRandom: state.qty, startOrder: Number(cfg.startOrder) || 1001, delaySec: delay, count, intervalSec: every });
+    if (cfg.startOrder !== undefined) { cfg.startOrder = (Number(cfg.startOrder) || 1001) + count; drawForm(); }
+    schedMsg('Scheduled: ' + count + ' notification' + (count === 1 ? '' : 's') + ', first in ' + fmtDur(delay) + ', then about every ' + fmtDur(every) + '.' + (pushOK ? '' : ' This phone is not registered for push yet: tap Enable notifications above.'), pushOK);
+    save(); refreshJobs();
+  } catch (e) { schedMsg(e.message, false); }
+}
+async function refreshJobs() {
+  const box = $('#schedJobs'); if (!tok()) { box.textContent = ''; return; }
+  try {
+    const s = await srv('/api/status'); box.textContent = '';
+    s.jobs.forEach(j => {
+      const row = document.createElement('div'); row.className = 'jobrow';
+      const sp = document.createElement('span');
+      sp.textContent = (TYPES[j.kind] ? TYPES[j.kind].label : j.kind) + ' · ' + j.sent + '/' + j.count + (j.startsIn > 0 ? ' · starts in ' + fmtDur(j.startsIn) : '');
+      const b = document.createElement('button'); b.className = 'btn sec'; b.textContent = 'Cancel';
+      b.onclick = async () => { try { await srv('/api/cancel', { id: j.id }); } catch (e) {} refreshJobs(); };
+      row.append(sp, b); box.append(row);
+    });
+  } catch (e) {}
+}
+setInterval(() => { if (!document.hidden) refreshJobs(); }, 8000);
+function syncSched() { $('#wrapIn').style.display = state.sched.mode === 'in' ? '' : 'none'; $('#wrapAt').style.display = state.sched.mode === 'at' ? '' : 'none'; }
+function initSched() {
+  const map = { schedMode: 'mode', schedAmount: 'amount', schedUnit: 'unit', schedAt: 'at', schedCount: 'count', schedEvery: 'every', schedEveryUnit: 'everyUnit' };
+  for (const [id, k] of Object.entries(map)) {
+    const el = $('#' + id); el.value = state.sched[k];
+    el.oninput = el.onchange = () => { state.sched[k] = el.type === 'number' ? +el.value : el.value; syncSched(); save(); };
+  }
+  $('#adminTok').value = tok();
+  $('#adminTok').oninput = e => { try { localStorage.setItem('larp-token', e.target.value.trim()); } catch (err) {} };
+  $('#adminTok').onchange = refreshJobs;
+  $('#schedGo').onclick = scheduleServer;
+  syncSched(); refreshJobs();
+}
+
 load();
 if (state.real && !(canNotify() && Notification.permission === 'granted')) state.real = false;
 $('#count').value = state.count; $('#interval').value = state.interval; $('#wallpaper').value = state.wallpaper; $('#sfx').value = state.sfx; $('#watermark').checked = state.watermark; $('#qty').checked = state.qty; $('#real').checked = state.real;
-realStatus(); subscribePush(); applyLook(); drawTypes(); drawForm(); tick(); fit(); fill();
+realStatus(); subscribePush(); initSched(); applyLook(); drawTypes(); drawForm(); tick(); fit(); fill();
 </script>
 </body>
 </html>

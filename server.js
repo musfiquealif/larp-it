@@ -101,12 +101,13 @@ async function broadcast(payload) {
 const NAMES = ['Alex','Sam','Priya','Jordan','Mei','Lucas','Fatima','Noah','Aisha','Diego','Emma','Rahim','Sofia','Kenji','Zara','Tanvir','Olivia','Ravi','Nadia','Liam'];
 const CURRENCIES = ['$', '৳', '€', '£', '¥', '₹', 'A$', 'C$'];
 const money = (n, c) => c + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const qtyTxt = o => (o.qty > 1 ? ' × ' + o.qty : '');
 const FORMATS = {
-  shopify:  o => ({ title: `New order · ${o.m}`, body: `${o.store} · #${o.n} · ${o.qty} × ${o.name}` }),
-  stripe:   o => ({ title: `Payment · ${o.m}`, body: `${o.who} · ${o.name} · ${o.store}` }),
-  gumroad:  o => ({ title: `New sale: ${o.name}`, body: `${o.who} paid ${o.m}${o.qty > 1 ? ` (${o.qty} ×)` : ''}` }),
-  lemon:    o => ({ title: `New order: ${o.m}`, body: `${o.name} · ${o.who} · ${o.store}` }),
-  appstore: o => ({ title: `Sale · ${o.m}`, body: `${o.store} · ${o.name}${o.qty > 1 ? ` × ${o.qty}` : ''}` })
+  shopify:  o => ({ title: `Order #${o.n}`, body: `${o.m} · ${o.qty} × ${o.name}\n${o.store}` }),
+  stripe:   o => ({ title: `Payment from ${o.who}`, body: `${o.m} · ${o.name}${qtyTxt(o)}\n${o.store}` }),
+  gumroad:  o => ({ title: 'New sale', body: `${o.m} · ${o.name}${qtyTxt(o)}\n${o.who}` }),
+  lemon:    o => ({ title: 'New order', body: `${o.m} · ${o.name}${qtyTxt(o)}\n${o.store} · ${o.who}` }),
+  appstore: o => ({ title: 'New purchase', body: `${o.m} · ${o.name}${qtyTxt(o)}\n${o.store}` })
 };
 function makeSale(job) {
   const p = job.products[Math.floor(Math.random() * job.products.length)];
@@ -173,7 +174,7 @@ const server = http.createServer(async (req, res) => {
       const now = Date.now(); failTimes = failTimes.filter(t => now - t < 60000);
       if (failTimes.length >= 20) return json(res, 429, { error: 'Slow down' });
       if (!authed(req)) { failTimes.push(now); return json(res, 401, { error: 'Unauthorized' }); }
-      if (p === '/api/status' && req.method === 'GET') return json(res, 200, { subscribers: Object.keys(subs).length, jobs: [...jobs.values()].map(j => ({ id: j.id, kind: j.kind, sent: j.sent, count: j.count })) });
+      if (p === '/api/status' && req.method === 'GET') return json(res, 200, { subscribers: Object.keys(subs).length, jobs: [...jobs.values()].map(j => ({ id: j.id, kind: j.kind, sent: j.sent, count: j.count, startsIn: Math.max(0, (j.startsAt - Date.now()) / 1000) })) });
       if (p === '/api/send' && req.method === 'POST') {
         const b = await readBody(req);
         return json(res, 200, await broadcast({ title: String(b.title || 'New sale').slice(0, 100), body: String(b.body || '').slice(0, 300), tag: 'msg-' + Date.now() }));
@@ -181,7 +182,7 @@ const server = http.createServer(async (req, res) => {
       if (p === '/api/job' && req.method === 'POST') {
         if (jobs.size >= 20) return json(res, 429, { error: 'Too many active jobs' });
         let c; try { c = cleanJob(await readBody(req)); } catch (e) { return json(res, 400, { error: e.message }); }
-        const job = Object.assign(c, { id: crypto.randomBytes(4).toString('hex'), sent: 0 });
+        const job = Object.assign(c, { id: crypto.randomBytes(4).toString('hex'), sent: 0, startsAt: Date.now() + c.delaySec * 1000 });
         jobs.set(job.id, job); runJob(job); return json(res, 200, { id: job.id });
       }
       if (p === '/api/cancel' && req.method === 'POST') {

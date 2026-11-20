@@ -56,7 +56,7 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     await call('/api/job', { kind: 'stripe', currency: '$', store: 'Acme Inc', products: [{ name: 'Pro plan', price: 29 }], count: 2, intervalSec: 1, delaySec: 0 });
     await wait(3200);
     const sales = received.slice(1); assert.strictEqual(sales.length, 2, 'two job pushes, got ' + JSON.stringify(sales));
-    sales.forEach(s => { assert(!s.error, s.error); assert.strictEqual(s.title, 'Payment · $29.00'); });
+    sales.forEach(s => { assert(!s.error, s.error); assert(/^Payment from /.test(s.title)); assert.strictEqual(s.body.split('\n')[0], '$29.00 · Pro plan'); });
     assert.strictEqual((await call('/api/job', { kind: 'nope', currency: '$', products: [{ name: 'a', price: 1 }] }))[0], 400);
 
     mockStatus = 410; [, r] = await call('/api/send', { title: 'x' }); await wait(100);
